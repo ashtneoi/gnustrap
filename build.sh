@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -eu
 
+THREADS=3
+
 build="$(realpath -m build)"
 build_root="$(realpath build-root)"
 root="$(realpath -m root)"
@@ -17,6 +19,9 @@ mkdir -p "$root/binutils"
 mkdir -p "$build/make"
 mkdir -p "$root/make"
 
+mkdir -p "$build/gcc"
+mkdir -p "$root/gcc"
+
 cd "$build/grep"
 export PATH="$build_root/grep/bin:$build_root/all/bin"
 if ! [[ -e Makefile ]]; then
@@ -25,7 +30,7 @@ if ! [[ -e Makefile ]]; then
         --host=x86_64-linux-gnu \
         --prefix="$root/grep"
 fi
-make
+make -j $THREADS
 make install
 prevroot="$root/grep/bin"
 
@@ -37,7 +42,7 @@ if ! [[ -e Makefile ]]; then
         --host=x86_64-linux-gnu \
         --prefix="$root/make"
 fi
-make
+make -j $THREADS
 make install
 prevroot="$prevroot:$root/make/bin"
 
@@ -51,7 +56,7 @@ if ! [[ -e Makefile ]]; then
         --disable-multilib \
         --prefix="$root/binutils"
 fi
-make MAKEINFO=true
+make -j $THREADS MAKEINFO=true
 make install MAKEINFO=true
 prevroot="$prevroot:$root/binutils/bin:$root/binutils/x86_64-linux-gnu/bin"
 
@@ -63,11 +68,11 @@ if ! [[ -e Makefile ]]; then
         --host=x86_64-linux-gnu \
         --prefix="$root/bash"
 fi
-make
+make -j $THREADS
 make install
+cd "$root/bash/bin"
+ln -fs bash sh
 prevroot="$prevroot:$root/bash/bin"
-
-exit
 
 cd "$build/gcc"
 export PATH="$build_root/gcc/bin:$prevroot:$build_root/all/bin"
@@ -76,14 +81,10 @@ if ! [[ -e Makefile ]]; then
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
         --target=x86_64-linux-gnu \
+        --enable-languages=c,c++,lto \
+        --disable-multilib \
+        --disable-bootstrap \
         --prefix="$root/bash"
 fi
-make
+make -j $THREADS
 make install
-
-#../gcc-8.2.0/configure \
-    #--build=x86_64-linux-gnu \
-    #--host=x86_64-linux-gnu \
-    #--target=x86_64-linux-gnu \
-    #--enable-languages=c,lto \
-    #--disable-multilib \
