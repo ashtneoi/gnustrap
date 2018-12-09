@@ -9,8 +9,9 @@ build_root="$(realpath build-root)"
 root="$(realpath -m root)"
 root2="$(realpath -m root2)"
 
+mkdir -p "$root/all"
+
 mkdir -p "$build/grep"
-mkdir -p "$root/grep"
 cd "$build/grep"
 export PATH="$build_root/grep/bin:$build_root/all/bin"
 if ! [[ -e "$build/grep.configure.stamp" ]]; then
@@ -18,7 +19,7 @@ if ! [[ -e "$build/grep.configure.stamp" ]]; then
     ../../grep-3.1/configure \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
-        --prefix="$root/grep"
+        --prefix="$root/all"
     touch "$build/grep.configure.stamp"
 fi
 if ! [[ -e "$root/grep.stamp" ]]; then
@@ -27,10 +28,9 @@ if ! [[ -e "$root/grep.stamp" ]]; then
     make install
     touch "$root/grep.stamp"
 fi
-prevroot="$root/grep/bin"
+prevroot="$root/all/bin"
 
 mkdir -p "$build/make"
-mkdir -p "$root/make"
 cd "$build/make"
 export PATH="$build_root/make/bin:$prevroot:$build_root/all/bin"
 if ! [[ -e "$build/make.configure.stamp" ]]; then
@@ -39,7 +39,7 @@ if ! [[ -e "$build/make.configure.stamp" ]]; then
     ../../make-4.2/configure \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
-        --prefix="$root/make"
+        --prefix="$root/all"
     touch "$build/make.configure.stamp"
 fi
 if ! [[ -e "$root/make.stamp" ]]; then
@@ -48,10 +48,8 @@ if ! [[ -e "$root/make.stamp" ]]; then
     make install
     touch "$root/make.stamp"
 fi
-prevroot="$root/make/bin:$prevroot"
 
 mkdir -p "$build/binutils"
-mkdir -p "$root/binutils"
 cd "$build/binutils"
 export PATH="$build_root/binutils/bin:$prevroot:$build_root/all/bin"
 if ! [[ -e "$build/binutils.configure.stamp" ]]; then
@@ -62,7 +60,7 @@ if ! [[ -e "$build/binutils.configure.stamp" ]]; then
         --host=x86_64-linux-gnu \
         --target=x86_64-linux-gnu \
         --disable-multilib \
-        --prefix="$root/binutils"
+        --prefix="$root/all"
     touch "$build/binutils.configure.stamp"
 fi
 if ! [[ -e "$root/binutils.stamp" ]]; then
@@ -71,10 +69,9 @@ if ! [[ -e "$root/binutils.stamp" ]]; then
     make install MAKEINFO=true
     touch "$root/binutils.stamp"
 fi
-prevroot="$root/binutils/bin:$root/binutils/x86_64-linux-gnu/bin:$prevroot"
+prevroot="$root/all/x86_64-linux-gnu/bin:$prevroot"
 
 mkdir -p "$build/bash"
-mkdir -p "$root/bash"
 cd "$build/bash"
 export PATH="$build_root/bash/bin:$prevroot:$build_root/all/bin"
 if ! [[ -e "$build/bash.configure.stamp" ]]; then
@@ -83,21 +80,19 @@ if ! [[ -e "$build/bash.configure.stamp" ]]; then
     ../../bash-4.4/configure \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
-        --prefix="$root/bash"
+        --prefix="$root/all"
     touch "$build/bash.configure.stamp"
 fi
 if ! [[ -e "$root/bash.stamp" ]]; then
     echo "### bash ###"
     make -j $THREADS
     make install
-    cd "$root/bash/bin"
+    cd "$root/all/bin"
     ln -fs bash sh
     touch "$root/bash.stamp"
 fi
-prevroot="$root/bash/bin:$prevroot"
 
 mkdir -p "$build/gcc"
-mkdir -p "$root/gcc"
 cd "$build/gcc"
 export PATH="$build_root/gcc/bin:$prevroot:$build_root/all/bin"
 if ! [[ -e "$build/gcc.configure.stamp" ]]; then
@@ -110,19 +105,17 @@ if ! [[ -e "$build/gcc.configure.stamp" ]]; then
         --enable-languages=c,c++,lto \
         --disable-multilib \
         --disable-bootstrap \
-        --prefix="$root/gcc"
+        --prefix="$root/all"
     touch "$build/gcc.configure.stamp"
 fi
 if ! [[ -e "$root/gcc.stamp" ]]; then
     echo "### gcc ###"
-    make -j $THREADS
+    make -j $THREADS #"LDFLAGS=-lstdc++"
     make install
     touch "$root/gcc.stamp"
 fi
-prevroot="$root/gcc/bin:$prevroot"
 
 mkdir -p "$build/gawk"
-mkdir -p "$root/gawk"
 cd "$build/gawk"
 export PATH="$build_root/gawk/bin:$prevroot:$build_root/all/bin"
 if ! [[ -e "$build/gawk.configure.stamp" ]]; then
@@ -131,7 +124,7 @@ if ! [[ -e "$build/gawk.configure.stamp" ]]; then
     ../../gawk-4.2.1/configure \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
-        --prefix="$root/gawk"
+        --prefix="$root/all"
     touch "$build/gawk.configure.stamp"
 fi
 if ! [[ -e "$root/gawk.stamp" ]]; then
@@ -140,10 +133,8 @@ if ! [[ -e "$root/gawk.stamp" ]]; then
     make install
     touch "$root/gawk.stamp"
 fi
-prevroot="$root/gawk/bin:$prevroot"
 
 mkdir -p "$build/m4"
-mkdir -p "$root/m4"
 cd "$build/m4"
 export PATH="$build_root/m4/bin:$prevroot:$build_root/all/bin"
 if ! [[ -e "$build/m4.configure.stamp" ]]; then
@@ -152,7 +143,7 @@ if ! [[ -e "$build/m4.configure.stamp" ]]; then
     ../../m4-1.4.18/configure \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
-        --prefix="$root/m4"
+        --prefix="$root/all"
     touch "$build/m4.configure.stamp"
 fi
 if ! [[ -e "$root/m4.stamp" ]]; then
@@ -161,10 +152,8 @@ if ! [[ -e "$root/m4.stamp" ]]; then
     make install
     touch "$root/m4.stamp"
 fi
-prevroot="$root/m4/bin:$prevroot"
 
 mkdir -p "$build/bison"
-mkdir -p "$root/bison"
 cd "$build/bison"
 export PATH="$build_root/bison/bin:$prevroot:$build_root/all/bin"
 if ! [[ -e "$build/bison.configure.stamp" ]]; then
@@ -173,7 +162,7 @@ if ! [[ -e "$build/bison.configure.stamp" ]]; then
     ../../bison-3.2/configure \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
-        --prefix="$root/bison"
+        --prefix="$root/all"
     touch "$build/bison.configure.stamp"
 fi
 if ! [[ -e "$root/bison.stamp" ]]; then
@@ -182,10 +171,8 @@ if ! [[ -e "$root/bison.stamp" ]]; then
     make install
     touch "$root/bison.stamp"
 fi
-prevroot="$root/bison/bin:$prevroot"
 
 mkdir -p "$build/gzip"
-mkdir -p "$root/gzip"
 cd "$build/gzip"
 export PATH="$build_root/gzip/bin:$prevroot:$build_root/all/bin"
 if ! [[ -e "$build/gzip.configure.stamp" ]]; then
@@ -194,7 +181,7 @@ if ! [[ -e "$build/gzip.configure.stamp" ]]; then
     ../../gzip-1.9/configure \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
-        --prefix="$root/gzip"
+        --prefix="$root/all"
     touch "$build/gzip.configure.stamp"
 fi
 if ! [[ -e "$root/gzip.stamp" ]]; then
@@ -203,10 +190,8 @@ if ! [[ -e "$root/gzip.stamp" ]]; then
     make install
     touch "$root/gzip.stamp"
 fi
-prevroot="$root/gzip/bin:$prevroot"
 
 mkdir -p "$build/glibc"
-mkdir -p "$root/glibc"
 cd "$build/glibc"
 export PATH="$build_root/glibc/bin:$prevroot:$build_root/all/bin"
 if ! [[ -e "$build/glibc.configure.stamp" ]]; then
@@ -215,7 +200,7 @@ if ! [[ -e "$build/glibc.configure.stamp" ]]; then
     ../../glibc-2.28/configure \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
-        --prefix="$root/glibc"
+        --prefix="$root/all"
     touch "$build/glibc.configure.stamp"
 fi
 if ! [[ -e "$root/glibc.stamp" ]]; then
@@ -224,10 +209,10 @@ if ! [[ -e "$root/glibc.stamp" ]]; then
     make install
     touch "$root/glibc.stamp"
 fi
-prevroot="$root/glibc/bin:$prevroot"
+
+mkdir -p "$root2/all"
 
 mkdir -p "$build2/gcc"
-mkdir -p "$root2/all"
 cd "$build2/gcc"
 export PATH="$prevroot:$build_root/all/bin"
 if ! [[ -e "$build2/gcc.configure.stamp" ]]; then
