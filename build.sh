@@ -17,8 +17,6 @@ mkdir -p "$root/binutils"
 mkdir -p "$build/make"
 mkdir -p "$root/make"
 
-# phase A
-
 cd "$build/grep"
 export PATH="$build_root/grep/bin:$build_root/all/bin"
 if ! [[ -e Makefile ]]; then
@@ -29,9 +27,6 @@ if ! [[ -e Makefile ]]; then
 fi
 make
 make install
-
-# phase B
-
 prevroot="$root/grep/bin"
 
 cd "$build/make"
@@ -44,10 +39,7 @@ if ! [[ -e Makefile ]]; then
 fi
 make
 make install
-
-# phase C
-
-prevroot="$root/grep/bin:$root/make/bin"
+prevroot="$prevroot:$root/make/bin"
 
 cd "$build/binutils"
 export PATH="$build_root/binutils/bin:$prevroot:$build_root/all/bin"
@@ -61,6 +53,7 @@ if ! [[ -e Makefile ]]; then
 fi
 make MAKEINFO=true
 make install MAKEINFO=true
+prevroot="$prevroot:$root/binutils/bin:$root/binutils/x86_64-linux-gnu/bin"
 
 cd "$build/bash"
 export PATH="$build_root/bash/bin:$prevroot:$build_root/all/bin"
@@ -68,6 +61,21 @@ if ! [[ -e Makefile ]]; then
     ../../bash-4.4/configure \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
+        --prefix="$root/bash"
+fi
+make
+make install
+prevroot="$prevroot:$root/bash/bin"
+
+exit
+
+cd "$build/gcc"
+export PATH="$build_root/gcc/bin:$prevroot:$build_root/all/bin"
+if ! [[ -e Makefile ]]; then
+    ../../gcc-8.2.0/configure \
+        --build=x86_64-linux-gnu \
+        --host=x86_64-linux-gnu \
+        --target=x86_64-linux-gnu \
         --prefix="$root/bash"
 fi
 make
