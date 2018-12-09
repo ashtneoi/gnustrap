@@ -12,7 +12,7 @@ mkdir -p "$root/grep"
 cd "$build/grep"
 export PATH="$build_root/grep/bin:$build_root/all/bin"
 if ! [[ -e "$build/grep.configure.stamp" ]]; then
-    rm -f "$root/make.stamp"
+    rm -f "$root/grep.stamp"
     ../../grep-3.1/configure \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
