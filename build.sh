@@ -4,8 +4,10 @@ set -eu
 THREADS=3
 
 build="$(realpath -m build)"
+build2="$(realpath -m build2)"
 build_root="$(realpath build-root)"
 root="$(realpath -m root)"
+root2="$(realpath -m root2)"
 
 mkdir -p "$build/grep"
 mkdir -p "$root/grep"
@@ -223,3 +225,27 @@ if ! [[ -e "$root/glibc.stamp" ]]; then
     touch "$root/glibc.stamp"
 fi
 prevroot="$root/glibc/bin:$prevroot"
+
+mkdir -p "$build2/gcc"
+mkdir -p "$root2/all"
+cd "$build2/gcc"
+export PATH="$prevroot:$build_root/all/bin"
+if ! [[ -e "$build2/gcc.configure.stamp" ]]; then
+    echo "### gcc again ###"
+    rm -f "$root2/gcc.stamp"
+    ../../gcc-8.2.0/configure \
+        --build=x86_64-linux-gnu \
+        --host=x86_64-linux-gnu \
+        --target=x86_64-linux-gnu \
+        --enable-languages=c,c++,lto \
+        --disable-multilib \
+        --disable-bootstrap \
+        --prefix="$root2/all"
+    touch "$build2/gcc.configure.stamp"
+fi
+if ! [[ -e "$root2/gcc.stamp" ]]; then
+    echo "### gcc ###"
+    make -j $THREADS
+    make install
+    touch "$root2/gcc.stamp"
+fi
