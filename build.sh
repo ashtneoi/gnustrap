@@ -35,7 +35,7 @@ fi
 if ! [[ -e "$root/grep.stamp" ]]; then
     make -j $THREADS
     make install
-    touch "$root/make.stamp"
+    touch "$root/grep.stamp"
 fi
 prevroot="$root/grep/bin"
 
