@@ -8,7 +8,30 @@ root_bash="$(realpath -m root/bash)"
 mkdir -p "$build_bash"
 mkdir -p "$root_bash"
 
+build_binutils="$(realpath -m build/binutils)"
+build_root_binutils="$(realpath build-root/binutils)"
+root_binutils="$(realpath -m root/binutils)"
+
+mkdir -p "$build_binutils"
+mkdir -p "$root_binutils"
+
 # phase A
+
+export PATH="$build_root_binutils/bin"
+
+cd "$build_binutils"
+if ! [[ -e Makefile ]]; then
+    ../../binutils-2.31/configure \
+        --build=x86_64-linux-gnu \
+        --host=x86_64-linux-gnu \
+        --target=x86_64-linux-gnu \
+        --disable-multilib \
+        --prefix="$root_binutils"
+fi
+make MAKEINFO=true
+make install MAKEINFO=true
+
+exit # !!!
 
 export PATH="$build_root_bash/bin"
 
