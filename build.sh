@@ -15,9 +15,28 @@ root_binutils="$(realpath -m root/binutils)"
 mkdir -p "$build_binutils"
 mkdir -p "$root_binutils"
 
+build_make="$(realpath -m build/make)"
+build_root_make="$(realpath build-root/make)"
+root_make="$(realpath -m root/make)"
+
+mkdir -p "$build_make"
+mkdir -p "$root_make"
+
 # phase A
 
-export PATH="$build_root_binutils/bin"
+export PATH="$build_root_make/bin"
+
+cd "$build_make"
+if ! [[ -e Makefile ]]; then
+    ../../make-4.2/configure \
+        --build=x86_64-linux-gnu \
+        --host=x86_64-linux-gnu \
+        --prefix="$root_make"
+fi
+make
+make install
+
+exit # !!!
 
 cd "$build_binutils"
 if ! [[ -e Makefile ]]; then
@@ -30,8 +49,6 @@ if ! [[ -e Makefile ]]; then
 fi
 make MAKEINFO=true
 make install MAKEINFO=true
-
-exit # !!!
 
 export PATH="$build_root_bash/bin"
 
