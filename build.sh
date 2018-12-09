@@ -1,70 +1,74 @@
 #!/usr/bin/env bash
 set -eu
 
-root_busybox="$(realpath -m root/busybox)"
+build="$(realpath -m build)"
+build_root="$(realpath build-root)"
+root="$(realpath -m root)"
 
-build_bash="$(realpath -m build/bash)"
-build_root_bash="$(realpath build-root/bash)"
-root_bash="$(realpath -m root/bash)"
+mkdir -p "$build/grep"
+mkdir -p "$root/grep"
 
-mkdir -p "$build_bash"
-mkdir -p "$root_bash"
+mkdir -p "$build/bash"
+mkdir -p "$root/bash"
 
-build_binutils="$(realpath -m build/binutils)"
-build_root_binutils="$(realpath build-root/binutils)"
-root_binutils="$(realpath -m root/binutils)"
+mkdir -p "$build/binutils"
+mkdir -p "$root/binutils"
 
-mkdir -p "$build_binutils"
-mkdir -p "$root_binutils"
-
-build_make="$(realpath -m build/make)"
-build_root_make="$(realpath build-root/make)"
-root_make="$(realpath -m root/make)"
-
-mkdir -p "$build_make"
-mkdir -p "$root_make"
+mkdir -p "$build/make"
+mkdir -p "$root/make"
 
 # phase A
 
-export PATH="$build_root_make/bin:$root_busybox/bin"
-
-cd "$build_make"
+cd "$build/grep"
+export PATH="$build_root/grep/bin:$root/busybox/bin"
 if ! [[ -e Makefile ]]; then
-    ../../make-4.2/configure \
+    ../../grep-3.1/configure \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
-        --prefix="$root_make"
+        --prefix="$root/grep"
 fi
 make
 make install
 
-export PATH="$build_root_binutils/bin:$root_busybox/bin"
+exit
 
-cd "$build_binutils"
+# phase B
+
+cd "$build/make"
+export PATH="$build_root/make/bin:$root/busybox/bin"
+if ! [[ -e Makefile ]]; then
+    ../../make-4.2/configure \
+        --build=x86_64-linux-gnu \
+        --host=x86_64-linux-gnu \
+        --prefix="$root/make"
+fi
+make
+make install
+
+cd "$build/binutils"
+export PATH="$build_root/make/bin:$root/busybox/bin"
 if ! [[ -e Makefile ]]; then
     ../../binutils-2.31/configure \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
         --target=x86_64-linux-gnu \
         --disable-multilib \
-        --prefix="$root_binutils"
+        --prefix="$root/binutils"
 fi
 make MAKEINFO=true
 make install MAKEINFO=true
 
-export PATH="$build_root_bash/bin:$root_busybox/bin"
-
-cd "$build_bash"
+cd "$build/bash"
+export PATH="$build_root/bash/bin:$root/busybox/bin"
 if ! [[ -e Makefile ]]; then
     ../../bash-4.4/configure \
         --build=x86_64-linux-gnu \
         --host=x86_64-linux-gnu \
-        --prefix="$root_bash"
+        --prefix="$root/bash"
 fi
 make
 make install
 
-#cd build-gcc
 #../gcc-8.2.0/configure \
     #--build=x86_64-linux-gnu \
     #--host=x86_64-linux-gnu \
