@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -eu
 
+root_busybox="$(realpath -m root/busybox)"
+
 build_bash="$(realpath -m build/bash)"
 build_root_bash="$(realpath build-root/bash)"
 root_bash="$(realpath -m root/bash)"
@@ -24,7 +26,7 @@ mkdir -p "$root_make"
 
 # phase A
 
-export PATH="$build_root_make/bin"
+export PATH="$build_root_make/bin:$root_busybox/bin"
 
 cd "$build_make"
 if ! [[ -e Makefile ]]; then
@@ -36,7 +38,7 @@ fi
 make
 make install
 
-exit # !!!
+export PATH="$build_root_binutils/bin:$root_busybox/bin"
 
 cd "$build_binutils"
 if ! [[ -e Makefile ]]; then
@@ -50,7 +52,7 @@ fi
 make MAKEINFO=true
 make install MAKEINFO=true
 
-export PATH="$build_root_bash/bin"
+export PATH="$build_root_bash/bin:$root_busybox/bin"
 
 cd "$build_bash"
 if ! [[ -e Makefile ]]; then
