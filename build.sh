@@ -20,7 +20,7 @@ mkdir -p "$root/make"
 # phase A
 
 cd "$build/grep"
-export PATH="$build_root/grep/bin:$root/busybox/bin"
+export PATH="$build_root/grep/bin:$build_root/all/bin"
 if ! [[ -e Makefile ]]; then
     ../../grep-3.1/configure \
         --build=x86_64-linux-gnu \
@@ -30,12 +30,12 @@ fi
 make
 make install
 
-exit
-
 # phase B
 
+prevroot="$root/grep/bin"
+
 cd "$build/make"
-export PATH="$build_root/make/bin:$root/busybox/bin"
+export PATH="$build_root/make/bin:$prevroot:$build_root/all/bin"
 if ! [[ -e Makefile ]]; then
     ../../make-4.2/configure \
         --build=x86_64-linux-gnu \
@@ -45,8 +45,12 @@ fi
 make
 make install
 
+# phase C
+
+prevroot="$root/grep/bin:$root/make/bin"
+
 cd "$build/binutils"
-export PATH="$build_root/make/bin:$root/busybox/bin"
+export PATH="$build_root/binutils/bin:$prevroot:$build_root/all/bin"
 if ! [[ -e Makefile ]]; then
     ../../binutils-2.31/configure \
         --build=x86_64-linux-gnu \
@@ -59,7 +63,7 @@ make MAKEINFO=true
 make install MAKEINFO=true
 
 cd "$build/bash"
-export PATH="$build_root/bash/bin:$root/busybox/bin"
+export PATH="$build_root/bash/bin:$prevroot:$build_root/all/bin"
 if ! [[ -e Makefile ]]; then
     ../../bash-4.4/configure \
         --build=x86_64-linux-gnu \
