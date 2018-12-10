@@ -66,6 +66,8 @@ arch_target=avr
 
 build binutils binutils-2.31 "MAKEINFO=true" \
     --target=$arch_target --disable-multilib
+arch_host=avr build avr-libc avr-libc-2.0.0 ""
 build gcc gcc-8.2.0 "" \
-    --target=$arch_target --enable-languages=c,c++,lto --disable-multilib \
-    --disable-bootstrap
+    --target=$arch_target --enable-languages=c,lto --disable-multilib \
+    --disable-bootstrap --with-sysroot="$root/all" \
+    --with-native-system-header-dir="/avr/include"
