@@ -55,19 +55,6 @@ build m4 m4-1.4.18 ""
 build bison bison-3.2 ""
 build gzip gzip-1.9 ""
 build glibc glibc-2.28 "" \
-    --target=$arch_target --disable-multi-arch
-
-build="$(realpath -m build2)"
-root="$(realpath -m root2)"
-newpath="$root/all/bin:$newpath"
-arch_build=x86_64-linux-gnu
-arch_host=x86_64-linux-gnu
-arch_target=avr
-
-build binutils binutils-2.31 "MAKEINFO=true" \
-    --target=$arch_target
-build gcc gcc-8.2.0 "" \
-    --target=$arch_target --enable-languages=c,lto \
-    --disable-bootstrap
-arch_host=avr build avr-libc avr-libc-2.0.0 ""
+    --target=$arch_target --disable-multi-arch \
+    --with-headers="$(realpath -m linux-5.0.2/include)"
 echo "PATH=\"$newpath\" \"\$@\"" >"$root/run" && chmod +x "$root/run"
