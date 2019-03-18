@@ -42,8 +42,8 @@ arch_host=x86_64-linux-gnu
 arch_target=$arch_host
 
 build grep grep-3.1 ""
-build make make-4.2 ""
-build binutils binutils-2.31 "MAKEINFO=true" \
+build make make-4.2.1 ""
+build binutils binutils-2.32 "MAKEINFO=true" \
     --target=$arch_target --disable-multilib
 build bash bash-4.4 ""
 ln -fs bash $root/all/bin/sh
