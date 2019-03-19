@@ -58,5 +58,6 @@ build glibc glibc-2.28 "" \
     --target=$arch_target --disable-multi-arch \
     --with-headers="$(realpath -m linux-5.0.2/include)" \
     --without-selinux
-build ncurses ncurses-6.1 ""
+build ncurses ncurses-6.1 "" \
+    --with-shared --with-termlib
 echo "PATH=\"$newpath\" \"\$@\"" >"$root/run" && chmod +x "$root/run"
