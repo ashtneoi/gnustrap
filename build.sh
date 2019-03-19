@@ -56,5 +56,7 @@ build bison bison-3.2 ""
 build gzip gzip-1.9 ""
 build glibc glibc-2.28 "" \
     --target=$arch_target --disable-multi-arch \
-    --with-headers="$(realpath -m linux-5.0.2/include)"
+    --with-headers="$(realpath -m linux-5.0.2/include)" \
+    --without-selinux
+build ncurses ncurses-6.1 ""
 echo "PATH=\"$newpath\" \"\$@\"" >"$root/run" && chmod +x "$root/run"
