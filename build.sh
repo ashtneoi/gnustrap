@@ -46,23 +46,22 @@ arch_target=$arch_host
 # ar
 # strip
 
-build grep grep-3.1 ""
-build ncurses ncurses-6.1 "" \
-    --with-shared --with-termlib
-build make make-4.2.1 ""
+build bash bash-4.4 "" \
+    && ln -fs bash $root/all/bin/sh
 build binutils binutils-2.32 "MAKEINFO=true" \
     --target=$arch_target --disable-multilib
-build bash bash-4.4 ""
+build bison bison-3.2 ""
+build gawk gawk-4.2.1 ""
 build gcc gcc-8.2.0 "" \
     --target=$arch_target --enable-languages=c,c++,lto --disable-multilib \
     --disable-bootstrap
-build gawk gawk-4.2.1 ""
-build m4 m4-1.4.18 ""
-build bison bison-3.2 ""
-build gzip gzip-1.9 ""
 build glibc glibc-2.28 "" \
     --target=$arch_target --disable-multi-arch \
     --with-headers="$(realpath -m linux-5.0.2/include)" \
     --without-selinux
-
-ln -fs bash $root/all/bin/sh
+build grep grep-3.1 ""
+build gzip gzip-1.9 ""
+build m4 m4-1.4.18 ""
+build make make-4.2.1 ""
+build ncurses ncurses-6.1 "" \
+    --with-shared --with-termlib
