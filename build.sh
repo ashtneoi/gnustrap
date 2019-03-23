@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eu
 
-# build-root build root proj src make_extra [config_option...]
+# proj src make_extra [config_option...]
 build() {
     local proj="$1"
     local src="$(realpath "$2")"
