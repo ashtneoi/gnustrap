@@ -42,6 +42,8 @@ arch_host=x86_64-linux-gnu
 arch_target=$arch_host
 
 build grep grep-3.1 ""
+build ncurses ncurses-6.1 "" \
+    --with-shared --with-termlib
 build make make-4.2.1 ""
 build binutils binutils-2.32 "MAKEINFO=true" \
     --target=$arch_target --disable-multilib
@@ -58,6 +60,4 @@ build glibc glibc-2.28 "" \
     --target=$arch_target --disable-multi-arch \
     --with-headers="$(realpath -m linux-5.0.2/include)" \
     --without-selinux
-build ncurses ncurses-6.1 "" \
-    --with-shared --with-termlib
 echo "PATH=\"$newpath\" \"\$@\"" >"$root/run" && chmod +x "$root/run"
