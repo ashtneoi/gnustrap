@@ -8,38 +8,43 @@ build() {
     local make_extra="$3" # watch out!
     shift 3
 
-    p="$build_root/$proj/bin:$newpath"
-
     mkdir -p "$build/$proj"
     pushd "$build/$proj" >/dev/null
     if ! [[ -e "$build/$proj.configure.stamp" ]]; then
-        rm -f "$root/$proj.stamp"
+        rm -f "$dest/$proj.stamp"
         PATH="$p" "$src/configure" \
             --build="$arch_build" \
             --host="$arch_host" \
-            --prefix="$root/all" \
+            --prefix="$dest/all" \
             "$@"
         touch "$build/$proj.configure.stamp"
     fi
-    if ! [[ -e "$root/$proj.stamp" ]]; then
+    if ! [[ -e "$dest/$proj.stamp" ]]; then
         echo "### $proj ###"
         PATH="$p" make -j $THREADS $make_extra
         PATH="$p" make install $make_extra
-        touch "$root/$proj.stamp"
+        touch "$dest/$proj.stamp"
     fi
     popd >/dev/null
 }
 
 THREADS=3
 
-build_root="$(realpath build-root)"
+ext_bin="$(realpath ext-bin)"
 
 build="$(realpath -m build)"
-root="$(realpath -m root)"
-newpath="$root/all/bin:$build_root/all/bin"
+dest="$(realpath -m root)"
+p="$ext_bin"
 arch_build=x86_64-linux-gnu
 arch_host=x86_64-linux-gnu
 arch_target=$arch_host
+
+# stuff needed in ext_bin:
+# `busybox --install [-s] .`
+# cc as ld
+# make
+# ar
+# strip
 
 build grep grep-3.1 ""
 build ncurses ncurses-6.1 "" \
@@ -48,7 +53,6 @@ build make make-4.2.1 ""
 build binutils binutils-2.32 "MAKEINFO=true" \
     --target=$arch_target --disable-multilib
 build bash bash-4.4 ""
-ln -fs bash $root/all/bin/sh
 build gcc gcc-8.2.0 "" \
     --target=$arch_target --enable-languages=c,c++,lto --disable-multilib \
     --disable-bootstrap
@@ -60,4 +64,5 @@ build glibc glibc-2.28 "" \
     --target=$arch_target --disable-multi-arch \
     --with-headers="$(realpath -m linux-5.0.2/include)" \
     --without-selinux
-echo "PATH=\"$newpath\" \"\$@\"" >"$root/run" && chmod +x "$root/run"
+
+ln -fs bash $root/all/bin/sh
