@@ -8,6 +8,9 @@ build() {
     local make_extra="$3" # watch out!
     shift 3
 
+    build="$(realpath -m build/$n)"
+    dest="$(realpath -m dest/$n)"
+
     mkdir -p "$build/$proj"
     pushd "$build/$proj" >/dev/null
     if ! [[ -e "$build/$proj.configure.stamp" ]]; then
@@ -36,15 +39,15 @@ build() {
 }
 
 THREADS=3
+CHROOT="unshare -Ur chroot"
 
 ext_bin="$(realpath ext-bin)"
 
 # Stage 1
+n=1
 
 p="$ext_bin"
 
-build="$(realpath -m build/1)"
-dest="$(realpath -m dest/1)"
 arch_build=x86_64-linux-gnu
 arch_host=x86_64-linux-gnu
 arch_target=$arch_host
@@ -52,29 +55,40 @@ arch_target=$arch_host
 build make make-4.2.1 ""
 
 # Stage 2
+n=2
 
 p="$p:$dest/root/bin"
 
-build="$(realpath -m build/2)"
-dest="$(realpath -m dest/2)"
 arch_build=x86_64-linux-gnu
 arch_host=x86_64-linux-gnu
 arch_target=$arch_host
 
+# gawk and m4 want make
 build gawk gawk-4.2.1 ""
 build m4 m4-1.4.18 ""
 
 # Stage 3
+n=3
 
 p="$p:$dest/root/bin"
 
-build="$(realpath -m build/3)"
-dest="$(realpath -m dest/3)"
 arch_build=x86_64-linux-gnu
 arch_host=x86_64-linux-gnu
 arch_target=$arch_host
 
-build m4 m4-1.4.18 ""
+# bison wants m4
+build bison bison-3.2 ""
+
+# Stage 4
+n=4
+
+p="$p:$dest/root/bin"
+
+dest="$(realpath -m dest/$n)"
+arch_build=x86_64-linux-gnu
+arch_host=x86_64-linux-gnu
+arch_target=$arch_host
+
 build bash bash-4.4 "" \
     && ln -fs bash $dest/root/bin/sh
 build binutils binutils-2.32 "MAKEINFO=true" \
@@ -82,28 +96,40 @@ build binutils binutils-2.32 "MAKEINFO=true" \
 build gcc gcc-8.2.0 "" \
     --target=$arch_target --enable-languages=c,c++,lto --disable-multilib \
     --disable-bootstrap
-# glibc wants gawk and bison
+# glibc wants bison
 build glibc glibc-2.28 "" \
     --target=$arch_target --disable-multi-arch \
-    --with-headers="$(realpath -m linux-5.0.2/include)" \
+    --with-headers="$(realpath -m src/linux-5.0.2/include)" \
     --without-selinux
 build grep grep-3.1 ""
 build gzip gzip-1.9 ""
 build ncurses ncurses-6.1 "" \
     --with-shared --with-termlib
 
-# Stage 3
+# Stage 5
+n=5
 
-p="$p:$dest/root/bin"
-
-build="$(realpath -m build3)"
-dest="$(realpath -m dest3)"
+dest="$(realpath -m dest/$n)"
 arch_build=x86_64-linux-gnu
 arch_host=x86_64-linux-gnu
 arch_target=$arch_host
 
-# bison wants m4
-build bison bison-3.2 ""
+p="$dest/root/bin"
+
+mkdir -p "$dest/root"
+for i in $(seq 1 $(($n-1))); do
+    cp -r dest/$i/root/* "$dest/root/"
+done
+
+gcc_path="$dest/root/bin/gcc"
+interp="$(readelf "$gcc_path" -p.interp -W | sed -nr 's/[^]]+\]\s*(.*)$/\1/p')"
+mkdir -p "$(dirname "$dest$interp")"
+ln -s /lib/x86_64/ld-glibc.so.2 "$dest$interp"
+
+mkdir -p "$dest/root/home/builder"
+cp -r src "$dest/root/home/builder/"
+
+PATH="$p" $CHROOT "$dest/root" /bin/gcc
 
 # stuff needed in ext_bin:
 # `busybox --install [-s] .`
@@ -113,3 +139,4 @@ build bison bison-3.2 ""
 # ld (binutils)
 # ar (binutils)
 # strip (binutils)
+# perl (perl)
