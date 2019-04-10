@@ -19,7 +19,8 @@ build() {
         PATH="$p" "$src/configure" \
             --build="$arch_build" \
             --host="$arch_host" \
-            --prefix="$dest/root" \
+            --prefix= \
+            --exec-prefix=/arch \
             "$@"
         touch "$build/$proj.configure.stamp"
     fi
@@ -28,10 +29,10 @@ build() {
         if [[ "$proj" == make ]]; then
             PATH="$p" sh build.sh
             PATH="$p" ./make -j $THREADS $make_extra
-            PATH="$p" ./make install $make_extra
+            PATH="$p" ./make install DESTDIR="$dest/root" $make_extra
         else
             PATH="$p" make -j $THREADS $make_extra
-            PATH="$p" make install $make_extra
+            PATH="$p" make install DESTDIR="$dest/root" $make_extra
         fi
         touch "$dest/$proj.stamp"
     fi
@@ -48,6 +49,7 @@ n=1
 
 p="$ext_bin"
 
+dest="$(realpath -m dest/$n)"
 arch_build=x86_64-linux-gnu
 arch_host=x86_64-linux-gnu
 arch_target=$arch_host
@@ -57,8 +59,9 @@ build make make-4.2.1 ""
 # Stage 2
 n=2
 
-p="$p:$dest/root/bin"
+p="$p:$dest/root/arch/bin"
 
+dest="$(realpath -m dest/$n)"
 arch_build=x86_64-linux-gnu
 arch_host=x86_64-linux-gnu
 arch_target=$arch_host
@@ -70,8 +73,9 @@ build m4 m4-1.4.18 ""
 # Stage 3
 n=3
 
-p="$p:$dest/root/bin"
+p="$p:$dest/root/arch/bin"
 
+dest="$(realpath -m dest/$n)"
 arch_build=x86_64-linux-gnu
 arch_host=x86_64-linux-gnu
 arch_target=$arch_host
@@ -82,7 +86,7 @@ build bison bison-3.2 ""
 # Stage 4
 n=4
 
-p="$p:$dest/root/bin"
+p="$p:$dest/root/arch/bin"
 
 dest="$(realpath -m dest/$n)"
 arch_build=x86_64-linux-gnu
@@ -90,7 +94,7 @@ arch_host=x86_64-linux-gnu
 arch_target=$arch_host
 
 build bash bash-4.4 "" \
-    && ln -fs bash $dest/root/bin/sh
+    && ln -fs bash $dest/root/arch/bin/sh
 build binutils binutils-2.32 "MAKEINFO=true" \
     --target=$arch_target --disable-multilib
 build gcc gcc-8.2.0 "" \
@@ -114,22 +118,27 @@ arch_build=x86_64-linux-gnu
 arch_host=x86_64-linux-gnu
 arch_target=$arch_host
 
-p="$dest/root/bin"
+p="$dest/root/arch/bin"
 
-mkdir -p "$dest/root"
-for i in $(seq 1 $(($n-1))); do
-    cp -r dest/$i/root/* "$dest/root/"
-done
+if ! [[ -e "$dest/stamp" ]]; then
+    echo "Copying files to final root tree..."
+    mkdir -p "$dest/root"
+    for i in $(seq 1 $(($n-1))); do
+        cp -fr dest/$i/root/* "$dest/root/"
+    done
+    touch "$dest/stamp"
+fi
 
-gcc_path="$dest/root/bin/gcc"
-interp="$(readelf "$gcc_path" -p.interp -W | sed -nr 's/[^]]+\]\s*(.*)$/\1/p')"
-mkdir -p "$(dirname "$dest$interp")"
-ln -s /lib/x86_64/ld-glibc.so.2 "$dest$interp"
+#gcc_path="$dest/root/arch/bin/gcc"
+#interp="$(readelf "$gcc_path" -p.interp -W | sed -nr 's/[^]]+\]\s*(.*)$/\1/p')"
+#mkdir -p "$(dirname "$dest/root$interp")"
+#ln -s /lib/x86_64/ld-glibc.so.2 "$dest/root$interp"
 
-mkdir -p "$dest/root/home/builder"
-cp -r src "$dest/root/home/builder/"
+#mkdir -p "$dest/root/home/builder"
+#cp -r src "$dest/root/home/builder/"
 
-PATH="$p" $CHROOT "$dest/root" /bin/gcc
+echo attempting to chroot
+$CHROOT "$dest/root" /arch/bin/gcc --version
 
 # stuff needed in ext_bin:
 # `busybox --install [-s] .`
@@ -138,5 +147,6 @@ PATH="$p" $CHROOT "$dest/root" /bin/gcc
 # as (binutils)
 # ld (binutils)
 # ar (binutils)
+# nm (binutils)
 # strip (binutils)
 # perl (perl)
