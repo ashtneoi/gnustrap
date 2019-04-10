@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -eu
 
+
+place="${1-}"
+if [[ "$place" != in && "$place" != out ]]; then
+    echo >&2 "usage: $0 in|out"
+    exit
+fi
+
+
 # proj src make_extra [config_option...]
 build() {
     local proj="$1"
@@ -8,8 +16,13 @@ build() {
     local make_extra="$3" # watch out!
     shift 3
 
-    build="$(realpath -m build/$n)"
-    dest="$(realpath -m dest/$n)"
+    prefix=
+    if [[ "$place" == out ]]; then
+        prefix="$dest/root"
+    fi
+
+    build="$(realpath -m build-$place/$n)"
+    dest="$(realpath -m dest-$place/$n)"
 
     mkdir -p "$build/$proj"
     pushd "$build/$proj" >/dev/null
@@ -19,8 +32,8 @@ build() {
         PATH="$p" "$src/configure" \
             --build="$arch_build" \
             --host="$arch_host" \
-            --prefix= \
-            --exec-prefix=/arch \
+            --prefix="$prefix" \
+            --exec-prefix="$prefix/arch" \
             "$@"
         touch "$build/$proj.configure.stamp"
     fi
@@ -40,16 +53,17 @@ build() {
 }
 
 THREADS=3
-CHROOT="unshare -Ur chroot"
+#CHROOT="unshare -Ur chroot"
 
 ext_bin="$(realpath ext-bin)"
+prefix=
 
 # Stage 1
 n=1
 
 p="$ext_bin"
 
-dest="$(realpath -m dest/$n)"
+dest="$(realpath -m dest-$place/$n)"
 arch_build=x86_64-linux-gnu
 arch_host=x86_64-linux-gnu
 arch_target=$arch_host
@@ -59,9 +73,9 @@ build make make-4.2.1 ""
 # Stage 2
 n=2
 
-p="$p:$dest/root/arch/bin"
+p="$p:$(realpath -m dest-out/1/root/arch/bin)"
 
-dest="$(realpath -m dest/$n)"
+dest="$(realpath -m dest-$place/$n)"
 arch_build=x86_64-linux-gnu
 arch_host=x86_64-linux-gnu
 arch_target=$arch_host
@@ -73,9 +87,9 @@ build m4 m4-1.4.18 ""
 # Stage 3
 n=3
 
-p="$p:$dest/root/arch/bin"
+p="$p:$(realpath -m dest-out/2/root/arch/bin)"
 
-dest="$(realpath -m dest/$n)"
+dest="$(realpath -m dest-$place/$n)"
 arch_build=x86_64-linux-gnu
 arch_host=x86_64-linux-gnu
 arch_target=$arch_host
@@ -86,9 +100,9 @@ build bison bison-3.2 ""
 # Stage 4
 n=4
 
-p="$p:$dest/root/arch/bin"
+p="$p:$(realpath -m dest-out/3/root/arch/bin)"
 
-dest="$(realpath -m dest/$n)"
+dest="$(realpath -m dest-$place/$n)"
 arch_build=x86_64-linux-gnu
 arch_host=x86_64-linux-gnu
 arch_target=$arch_host
@@ -113,20 +127,24 @@ build ncurses ncurses-6.1 "" \
 # Stage 5
 n=5
 
-dest="$(realpath -m dest/$n)"
+dest="$(realpath -m dest-$place/$n)"
 arch_build=x86_64-linux-gnu
 arch_host=x86_64-linux-gnu
 arch_target=$arch_host
 
-p="$dest/root/arch/bin"
+#p="$dest/root/arch/bin"
 
 if ! [[ -e "$dest/stamp" ]]; then
-    echo "Copying files to final root tree..."
+    echo "Combining roots..."
     mkdir -p "$dest/root"
     for i in $(seq 1 $(($n-1))); do
         cp -fr dest/$i/root/* "$dest/root/"
     done
     touch "$dest/stamp"
+fi
+
+if [[ "$place" == out ]]; then
+    "$0" 'in'
 fi
 
 #gcc_path="$dest/root/arch/bin/gcc"
@@ -137,8 +155,8 @@ fi
 #mkdir -p "$dest/root/home/builder"
 #cp -r src "$dest/root/home/builder/"
 
-echo attempting to chroot
-$CHROOT "$dest/root" /arch/bin/gcc --version
+#echo attempting to chroot
+#$CHROOT "$dest/root" /arch/bin/gcc --version
 
 # stuff needed in ext_bin:
 # `busybox --install [-s] .`
