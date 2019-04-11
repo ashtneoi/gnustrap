@@ -17,8 +17,10 @@ build() {
     shift 3
 
     prefix=
+    destdir="$dest/root"
     if [[ "$place" == out ]]; then
         prefix="$dest/root"
+        destdir=
     fi
 
     build="$(realpath -m build-$place/$n)"
@@ -42,10 +44,10 @@ build() {
         if [[ "$proj" == make ]]; then
             PATH="$p" sh build.sh
             PATH="$p" ./make -j $THREADS $make_extra
-            PATH="$p" ./make install DESTDIR="$dest/root" $make_extra
+            PATH="$p" ./make install DESTDIR="$destdir" $make_extra
         else
             PATH="$p" make -j $THREADS $make_extra
-            PATH="$p" make install DESTDIR="$dest/root" $make_extra
+            PATH="$p" make install DESTDIR="$destdir" $make_extra
         fi
         touch "$dest/$proj.stamp"
     fi
@@ -138,7 +140,7 @@ if ! [[ -e "$dest/stamp" ]]; then
     echo "Combining roots..."
     mkdir -p "$dest/root"
     for i in $(seq 1 $(($n-1))); do
-        cp -fr dest/$i/root/* "$dest/root/"
+        cp -fr "dest-$place/$i/root/"* "$dest/root/"
     done
     touch "$dest/stamp"
 fi
