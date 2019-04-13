@@ -28,7 +28,7 @@ build() {
 
     mkdir -p "$build/$proj"
     pushd "$build/$proj" >/dev/null
-    if ! [[ -e "$build/$proj.configure.stamp" ]]; then
+    if ! [[ -e "$dest/$proj.stamp" ]]; then
         echo "### $proj ###"
         rm -f "$dest/$proj.stamp"
         PATH="$p" "$src/configure" \
@@ -37,9 +37,7 @@ build() {
             --prefix="$prefix" \
             --exec-prefix="$prefix/arch" \
             "$@"
-        touch "$build/$proj.configure.stamp"
-    fi
-    if ! [[ -e "$dest/$proj.stamp" ]]; then
+
         echo "### $proj ###"
         if [[ "$proj" == make ]]; then
             PATH="$p" sh build.sh
@@ -50,6 +48,7 @@ build() {
             PATH="$p" make install DESTDIR="$destdir" $make_extra
         fi
         touch "$dest/$proj.stamp"
+        rm -fr "$build/$proj"
     fi
     popd >/dev/null
 }
@@ -141,12 +140,9 @@ if ! [[ -e "$dest/stamp" ]]; then
     mkdir -p "$dest/root"
     for i in $(seq 1 $(($n-1))); do
         cp -fr "dest-$place/$i/root/"* "$dest/root/"
+        rm -fr "dest-$place/$i"
     done
     touch "$dest/stamp"
-fi
-
-if [[ "$place" == out ]]; then
-    "$0" 'in'
 fi
 
 #gcc_path="$dest/root/arch/bin/gcc"
